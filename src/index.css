@@ -198,6 +198,7 @@ body {
 .s-open    { background: var(--green-pale); color: var(--green); }
 .s-limited { background: #F0E4C8; color: var(--amber); }
 .s-closed  { background: var(--bg2); color: var(--ink-muted); }
+.s-unknown { background: var(--bg2); color: var(--ink-muted); }
 
 .card-type { font-size: 0.7rem; color: var(--ink-muted); margin-bottom: 0.38rem; font-weight: 300; }
 .card-meta { display: flex; gap: 0.75rem; align-items: center; }
@@ -273,7 +274,7 @@ body {
 }
 .detail-type { font-size: 0.75rem; color: var(--ink-muted); font-weight: 300; margin-bottom: 0.85rem; }
 .detail-status-row { display: flex; align-items: center; gap: 0.65rem; margin-bottom: 1.2rem; }
-.detail-status { font-size: 0.7rem; font-weight: 500; padding: 0.26rem 0.7rem; border-radius: 3px; }
+.detail-status { font-size: 0.7rem; font-weight: 500; padding: 0.26rem 0.7rem; border-radius: 3px; white-space: nowrap; }
 
 .dsec { margin-bottom: 1.2rem; }
 .dlabel {
@@ -796,7 +797,6 @@ body {
   background: var(--panel);
   border: 1px solid var(--line);
   border-radius: 6px;
-  box-shadow: 0 24px 60px rgba(26,26,22,0.12);
   padding: 1.2rem;
 }
 

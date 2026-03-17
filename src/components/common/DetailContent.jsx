@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import HoursTable from '../common/HoursTable';
 
 const statusClass = s =>
-  s === 'closed' ? 's-closed' : 's-open';
+  s === 'closed' ? 's-closed' : s === 'open' ? 's-open' : 's-unknown';
 const statusLabel = s =>
-  s === 'closed' ? 'Closed' : 'Open';
+  s === 'closed' ? 'Closed' : s === 'open' ? 'Open' : 'Unknown';
 const statusDot = s =>
-  s === 'closed' ? '○' : '●';
+  s === 'closed' ? '○' : s === 'open' ? '●' : '◌';
 
 function getDir(address) {
   window.open(

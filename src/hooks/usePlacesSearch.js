@@ -48,11 +48,97 @@ function toHoursMap(weekdayText) {
   return hours;
 }
 
-function resolveOpenNow(openingHours) {
+function parseTimeToMinutes(value) {
+  if (typeof value !== 'string') return null;
+  const normalized = value.replace(/[\u202F\u00A0\u2009]/g, ' ').trim();
+  const match = normalized.match(/^(\d{1,2})(?::(\d{2}))?\s*([AP]M)$/i);
+  if (!match) return null;
+
+  let hour = Number(match[1]);
+  const mins = Number(match[2] || '0');
+  const meridiem = match[3].toUpperCase();
+
+  if (Number.isNaN(hour) || Number.isNaN(mins) || mins < 0 || mins > 59) return null;
+  if (hour < 1 || hour > 12) return null;
+
+  if (hour === 12) hour = 0;
+  if (meridiem === 'PM') hour += 12;
+
+  return hour * 60 + mins;
+}
+
+function getNowAtPlace(utcOffsetMinutes) {
+  if (typeof utcOffsetMinutes !== 'number' || Number.isNaN(utcOffsetMinutes)) {
+    const now = new Date();
+    return {
+      dayIndex: now.getDay(),
+      minutes: now.getHours() * 60 + now.getMinutes(),
+    };
+  }
+
+  const placeNow = new Date(Date.now() + utcOffsetMinutes * 60 * 1000);
+  return {
+    dayIndex: placeNow.getUTCDay(),
+    minutes: placeNow.getUTCHours() * 60 + placeNow.getUTCMinutes(),
+  };
+}
+
+function isOpenForTodayRow(todayRow, nowMinutes) {
+  if (typeof todayRow !== 'string') return null;
+
+  const split = todayRow.split(':');
+  if (split.length < 2) return null;
+
+  const value = split.slice(1).join(':').trim();
+  if (!value) return null;
+  if (/open\s+24\s+hours/i.test(value)) return true;
+  if (/closed/i.test(value)) return false;
+
+  const normalized = value
+    .replace(/[\u2013\u2014]/g, '-')
+    .replace(/[\u202F\u00A0\u2009]/g, ' ');
+
+  const ranges = normalized
+    .split(',')
+    .map(part => part.trim())
+    .filter(Boolean);
+
+  for (const range of ranges) {
+    const [openPart, closePart] = range.split('-').map(part => part.trim());
+    if (!openPart || !closePart) continue;
+
+    const openMinutes = parseTimeToMinutes(openPart);
+    const closeMinutes = parseTimeToMinutes(closePart);
+    if (openMinutes === null || closeMinutes === null) continue;
+
+    if (openMinutes <= closeMinutes) {
+      if (nowMinutes >= openMinutes && nowMinutes < closeMinutes) return true;
+    } else {
+      // Handles overnight ranges like 9:00 PM - 2:00 AM.
+      if (nowMinutes >= openMinutes || nowMinutes < closeMinutes) return true;
+    }
+  }
+
+  return false;
+}
+
+function resolveOpenNow(openingHours, utcOffsetMinutes = null) {
   if (!openingHours) return null;
 
   if (typeof openingHours.open_now === 'boolean') {
     return openingHours.open_now;
+  }
+
+  if (Array.isArray(openingHours.weekday_text)) {
+    const nowAtPlace = getNowAtPlace(utcOffsetMinutes);
+    const today = LONG_DAYS[nowAtPlace.dayIndex];
+    const todayRow = openingHours.weekday_text.find(
+      row => typeof row === 'string' && row.startsWith(`${today}:`)
+    );
+
+    if (typeof todayRow === 'string') {
+      return isOpenForTodayRow(todayRow, nowAtPlace.minutes);
+    }
   }
 
   if (typeof openingHours.isOpen === 'function') {
@@ -62,20 +148,8 @@ function resolveOpenNow(openingHours) {
       try {
         return openingHours.isOpen();
       } catch {
-        // Ignore and fall through to text-based fallback.
+        // Ignore and return unknown.
       }
-    }
-  }
-
-  if (Array.isArray(openingHours.weekday_text)) {
-    const today = LONG_DAYS[new Date().getDay()];
-    const todayRow = openingHours.weekday_text.find(
-      row => typeof row === 'string' && row.startsWith(`${today}:`)
-    );
-
-    if (typeof todayRow === 'string') {
-      if (/open\s+24\s+hours/i.test(todayRow)) return true;
-      if (/closed/i.test(todayRow)) return false;
     }
   }
 
@@ -101,7 +175,7 @@ function normalizePlace(place, idx, origin, openNow = null) {
     phone: place.formatted_phone_number || '—',
     website: place.website || '',
     hours: toHoursMap(place.opening_hours?.weekday_text),
-    status: openNow === true ? 'open' : 'closed',
+    status: openNow === true ? 'open' : openNow === false ? 'closed' : 'unknown',
     isOpen: openNow,
     dist: dist === null ? 0 : Number(dist.toFixed(1)),
     rating: place.rating || null,
@@ -159,6 +233,7 @@ export default function usePlacesSearch(map, apiReady) {
                       'website',
                       'geometry',
                       'opening_hours',
+                      'utc_offset_minutes',
                       'types',
                       'rating',
                     ],
@@ -168,7 +243,10 @@ export default function usePlacesSearch(map, apiReady) {
                       detailsStatus === window.google.maps.places.PlacesServiceStatus.OK &&
                       detailsResult
                     ) {
-                      const detailsOpenNow = resolveOpenNow(detailsResult?.opening_hours);
+                      const detailsOpenNow = resolveOpenNow(
+                        detailsResult?.opening_hours,
+                        detailsResult?.utc_offset_minutes
+                      );
 
                       resolve(normalizePlace(detailsResult, idx, center, detailsOpenNow));
                     } else {

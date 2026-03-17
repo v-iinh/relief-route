@@ -1,8 +1,8 @@
 const statusClass = s =>
-  s === 'closed' ? 's-closed' : 's-open';
+  s === 'closed' ? 's-closed' : s === 'open' ? 's-open' : 's-unknown';
 
 const statusLabel = s =>
-  s === 'closed' ? 'Closed' : 'Open';
+  s === 'closed' ? 'Closed' : s === 'open' ? 'Open' : 'Unknown';
 
 export default function ResultCard({ loc, isActive, onClick }) {
   if (!loc) return null;
