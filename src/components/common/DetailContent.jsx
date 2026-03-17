@@ -4,9 +4,9 @@ import HoursTable from '../common/HoursTable';
 const statusClass = s =>
   s === 'closed' ? 's-closed' : s === 'open' ? 's-open' : 's-unknown';
 const statusLabel = s =>
-  s === 'closed' ? 'Closed' : s === 'open' ? 'Open' : 'Unknown';
+  s === 'closed' ? 'Closed' : s === 'open' ? 'Open' : 'Hours unavailable';
 const statusDot = s =>
-  s === 'closed' ? '○' : s === 'open' ? '●' : '◌';
+  s === 'closed' ? '○' : s === 'open' ? '●' : '○';
 
 function getDir(address) {
   window.open(
@@ -157,7 +157,7 @@ export default function DetailContent({ loc, onToast }) {
       )}
       <div className="detail-status-row">
         <span className={`detail-status ${statusClass(loc.status)}`}>
-          {statusDot(loc.status)} {statusLabel(loc.status)} now
+          {statusDot(loc.status)} {statusLabel(loc.status)}{loc.status === 'unknown' ? '' : ' now'}
         </span>
         <span style={{ fontSize: '.72rem', color: 'var(--ink-muted)' }}>
           ◎ {typeof loc.dist === 'number' ? loc.dist : 0} mi away
