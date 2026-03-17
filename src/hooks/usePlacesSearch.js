@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const LONG_DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 function haversineMiles(from, to) {
   if (!from || !to) return null;
@@ -45,6 +46,40 @@ function toHoursMap(weekdayText) {
   });
 
   return hours;
+}
+
+function resolveOpenNow(openingHours) {
+  if (!openingHours) return null;
+
+  if (typeof openingHours.open_now === 'boolean') {
+    return openingHours.open_now;
+  }
+
+  if (typeof openingHours.isOpen === 'function') {
+    try {
+      return openingHours.isOpen(new Date());
+    } catch {
+      try {
+        return openingHours.isOpen();
+      } catch {
+        // Ignore and fall through to text-based fallback.
+      }
+    }
+  }
+
+  if (Array.isArray(openingHours.weekday_text)) {
+    const today = LONG_DAYS[new Date().getDay()];
+    const todayRow = openingHours.weekday_text.find(
+      row => typeof row === 'string' && row.startsWith(`${today}:`)
+    );
+
+    if (typeof todayRow === 'string') {
+      if (/open\s+24\s+hours/i.test(todayRow)) return true;
+      if (/closed/i.test(todayRow)) return false;
+    }
+  }
+
+  return null;
 }
 
 function normalizePlace(place, idx, origin, openNow = null) {
@@ -133,10 +168,7 @@ export default function usePlacesSearch(map, apiReady) {
                       detailsStatus === window.google.maps.places.PlacesServiceStatus.OK &&
                       detailsResult
                     ) {
-                      const detailsOpenNow =
-                        typeof detailsResult?.opening_hours?.isOpen === 'function'
-                          ? detailsResult.opening_hours.isOpen()
-                          : null;
+                      const detailsOpenNow = resolveOpenNow(detailsResult?.opening_hours);
 
                       resolve(normalizePlace(detailsResult, idx, center, detailsOpenNow));
                     } else {
