@@ -103,7 +103,7 @@ export default function DetailContent({ loc, onToast }) {
                 Be direct and avoid descriptive phrases.`
             },
             ],
-            temperature: 0.4,
+            temperature: 0.2,
           }),
         });
 
