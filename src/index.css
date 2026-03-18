@@ -1138,10 +1138,6 @@ body {
   transition: box-shadow 0.2s;
 }
 
-.stat-card:hover {
-  box-shadow: 0 4px 16px var(--shadow);
-}
-
 .stat-card::after {
   content: '';
   position: absolute;
