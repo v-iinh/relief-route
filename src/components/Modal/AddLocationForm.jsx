@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import HoursBuilder, { initHours } from './HoursBuilder';
+import HoursBuilder, { getHoursValue, initHours } from './HoursBuilder';
+import { createListingSubmission } from '../../firebase';
 
 function initialFormState() {
   return {
@@ -26,26 +27,60 @@ export default function AddLocationForm({ onClose, onToast }) {
       onToast('Please fill in name and address');
       return;
     }
+
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
-      setSubmitted(true);
-      setTimeout(() => {
-        onClose();
-        setForm(initialFormState());
-        setSubmitted(false);
-      }, 3000);
-    }, 800);
+
+    const hoursMap = getHoursValue(form.hours);
+    const hoursSummary = Object.values(hoursMap).some(value => value && value !== '—')
+      ? hoursMap
+      : null;
+
+    createListingSubmission({
+      name: form.name.trim(),
+      address: form.address.trim(),
+      phone: form.phone.trim(),
+      website: form.website.trim(),
+      notes: form.notes.trim(),
+      hours: form.hours,
+      hoursSummary: hoursSummary
+        ? Object.entries(hoursMap)
+            .map(([day, value]) => `${day}: ${value}`)
+            .join(' | ')
+        : '—',
+    })
+      .then(() => {
+        setSubmitting(false);
+        setSubmitted(true);
+        onToast('Listing submitted to pending review');
+
+        setTimeout(() => {
+          onClose();
+          setForm(initialFormState());
+          setSubmitted(false);
+        }, 1800);
+      })
+      .catch(() => {
+        setSubmitting(false);
+        onToast('Could not submit listing. Please try again.');
+      });
   }
 
   if (submitted) {
     return (
       <div className="m-success">
-        ✓ Thank you!
-        <br />
-        <br />
-        <strong>{form.name}</strong> has been submitted for review and will
-        appear on the map within 24 hours.
+        <div className="m-success-icon" aria-hidden="true">✓</div>
+        <div className="m-success-title">Submission Received</div>
+        <div className="m-success-copy">
+          Thank you for contributing to Relief Route. Your listing is now in the pending review queue.
+        </div>
+
+        <div className="m-success-card">
+          <div className="m-success-label">Location</div>
+          <div className="m-success-name">{form.name || 'Untitled location'}</div>
+          <div className="m-success-address">{form.address || 'Address not provided'}</div>
+        </div>
+
+        <div className="m-success-foot">Closing automatically...</div>
       </div>
     );
   }

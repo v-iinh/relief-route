@@ -530,9 +530,77 @@ body {
 .m-submit:hover { background: var(--green-hover); }
 .m-submit:disabled { cursor: not-allowed; }
 .m-success {
-  text-align: center; padding: 2.5rem 1rem;
-  font-family: 'Fraunces', serif; font-size: 1rem;
-  color: var(--green); line-height: 1.75;
+  text-align: center;
+  padding: 1.4rem 0.25rem 0.35rem;
+  color: var(--ink-mid);
+}
+
+.m-success-icon {
+  width: 44px;
+  height: 44px;
+  margin: 0 auto 0.7rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--green-wash);
+  color: var(--green);
+  border: 1px solid #c5d9c5;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.m-success-title {
+  font-family: 'Fraunces', serif;
+  font-size: 1.12rem;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.25;
+}
+
+.m-success-copy {
+  margin-top: 0.45rem;
+  font-size: 0.82rem;
+  color: var(--ink-mid);
+  line-height: 1.6;
+}
+
+.m-success-card {
+  margin-top: 0.95rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--white);
+  text-align: left;
+}
+
+.m-success-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  font-weight: 500;
+}
+
+.m-success-name {
+  margin-top: 0.25rem;
+  font-size: 0.88rem;
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.m-success-address {
+  margin-top: 0.16rem;
+  font-size: 0.75rem;
+  color: var(--ink-muted);
+  line-height: 1.45;
+}
+
+.m-success-foot {
+  margin-top: 0.68rem;
+  font-size: 0.69rem;
+  color: var(--ink-muted);
+  letter-spacing: 0.02em;
 }
 
 /* Tag list builder */
@@ -1267,6 +1335,14 @@ table.dt tbody tr:hover td {
   font-size: 0.75rem;
   color: var(--ink-muted);
   font-weight: 300;
+}
+
+.td-note {
+  max-width: 260px;
+  font-size: 0.75rem;
+  color: var(--ink-mid);
+  font-weight: 300;
+  line-height: 1.45;
 }
 
 .pill {

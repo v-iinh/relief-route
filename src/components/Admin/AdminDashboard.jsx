@@ -2,94 +2,27 @@ import { useEffect, useMemo, useState } from 'react';
 import AdminTopBar from './AdminTopBar';
 import AdminMetrics from './AdminMetrics';
 import AdminListingsTable from './AdminListingsTable';
-import { subscribeAnalytics } from '../../firebase';
+import AdminEditListingModal from './AdminEditListingModal';
+import {
+  approveListing,
+  removeListing,
+  subscribeAnalytics,
+  subscribeListings,
+  updateListing,
+} from '../../firebase';
 
 function formatMetricValue(value) {
   return Number(value || 0).toLocaleString();
 }
 
-const INITIAL_CURRENT_LISTINGS = [
-  {
-    id: 1,
-    name: 'City Food Bank - Downtown',
-    address: '89 Washington St, Boston, MA',
-    type: 'Pantry',
-    status: 'open',
-    distance: '0.7 mi',
-    updated: '2 days ago',
-  },
-  {
-    id: 2,
-    name: 'Oak Street Community Fridge',
-    address: '142 Oak St, Boston, MA',
-    type: 'Community',
-    status: 'open',
-    distance: '0.3 mi',
-    updated: 'Today',
-  },
-  {
-    id: 3,
-    name: "St. Mary's Pantry",
-    address: '301 Cambridge St, Allston, MA',
-    type: 'Pantry',
-    status: 'closed',
-    distance: '1.1 mi',
-    updated: '1 week ago',
-  },
-  {
-    id: 4,
-    name: 'Riverside Aid Center',
-    address: '55 River Rd, Brighton, MA',
-    type: 'Pantry',
-    status: 'limited',
-    distance: '1.4 mi',
-    updated: '3 days ago',
-  },
-  {
-    id: 5,
-    name: 'Fenway Free Fridge',
-    address: 'Peterborough St, Boston, MA',
-    type: 'Community',
-    status: 'open',
-    distance: '2.3 mi',
-    updated: 'Today',
-  },
-];
-
-const INITIAL_PENDING_LISTINGS = [
-  {
-    id: 101,
-    name: 'Allston Mutual Aid Fridge',
-    address: '79 Brighton Ave, Allston, MA',
-    type: 'Community',
-    submitted: 'Mar 15, 2026',
-    submitter: 'm.patel@email.com',
-  },
-  {
-    id: 102,
-    name: 'Codman Square Food Pantry',
-    address: '6 Norfolk St, Dorchester, MA',
-    type: 'Pantry',
-    submitted: 'Mar 14, 2026',
-    submitter: 'volunteer@codman.org',
-  },
-  {
-    id: 103,
-    name: 'East Boston Fridge',
-    address: '197 Meridian St, East Boston, MA',
-    type: 'Community',
-    submitted: 'Mar 12, 2026',
-    submitter: 'eastbostonfridge@gmail.com',
-  },
-];
-
 export default function AdminDashboard() {
-  const [currentListings, setCurrentListings] = useState(INITIAL_CURRENT_LISTINGS);
-  const [pendingListings, setPendingListings] = useState(INITIAL_PENDING_LISTINGS);
+  const [allListings, setAllListings] = useState([]);
   const [period, setPeriod] = useState('alltime');
   const [activeTab, setActiveTab] = useState('current');
   const [searchValue, setSearchValue] = useState('');
   const [toast, setToast] = useState('');
+  const [editingListing, setEditingListing] = useState(null);
+  const [savingEdit, setSavingEdit] = useState(false);
   const [analyticsData, setAnalyticsData] = useState({
     allTime: { visits: 0, users: 0, searches: 0 },
     month: { key: null, visits: 0, users: 0, searches: 0 },
@@ -102,13 +35,30 @@ export default function AdminDashboard() {
     { label: 'Searches', value: formatMetricValue(metricsSource.searches), delta: 'Live', context: 'search actions' },
   ];
 
+  const currentListings = useMemo(() => {
+    return allListings.filter((row) => row.status === 'approved');
+  }, [allListings]);
+
+  const pendingListings = useMemo(() => {
+    return allListings.filter((row) => row.status !== 'approved');
+  }, [allListings]);
+
   const filteredListings = useMemo(() => {
     const query = searchValue.trim().toLowerCase();
     const source = activeTab === 'pending' ? pendingListings : currentListings;
     if (!query) return source;
 
     return source.filter((row) => {
-      return row.name.toLowerCase().includes(query) || row.address.toLowerCase().includes(query);
+      const fields = [
+        row.name,
+        row.address,
+        row.phone,
+        row.website,
+        row.hoursSummary,
+        row.notes,
+      ];
+
+      return fields.some((value) => String(value || '').toLowerCase().includes(query));
     });
   }, [activeTab, currentListings, pendingListings, searchValue]);
 
@@ -127,18 +77,61 @@ export default function AdminDashboard() {
     };
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = subscribeListings(
+      (nextData) => setAllListings(nextData),
+      () => {
+        showToast('Could not load listings');
+      }
+    );
+
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
+  }, []);
+
   function showToast(message) {
     setToast(message);
     window.setTimeout(() => setToast(''), 2200);
   }
 
   function handleRemove(id) {
+    removeListing(id)
+      .then(() => {
+        showToast(activeTab === 'pending' ? 'Submission rejected' : 'Listing removed');
+      })
+      .catch(() => {
+        showToast('Action failed. Please try again.');
+      });
+  }
+
+  function handleEdit(row) {
     if (activeTab === 'pending') {
-      setPendingListings((current) => current.filter((row) => row.id !== id));
-    } else {
-      setCurrentListings((current) => current.filter((row) => row.id !== id));
+      approveListing(row.id)
+        .then(() => showToast(`Approved ${row.name}`))
+        .catch(() => showToast('Could not approve listing'));
+      return;
     }
-    showToast('Listing removed');
+
+    setEditingListing(row);
+  }
+
+  function handleSaveEdit(payload) {
+    if (!editingListing?.id) return;
+
+    setSavingEdit(true);
+    updateListing(editingListing.id, payload)
+      .then(() => {
+        setSavingEdit(false);
+        setEditingListing(null);
+        showToast('Listing updated');
+      })
+      .catch(() => {
+        setSavingEdit(false);
+        showToast('Could not update listing');
+      });
   }
 
   return (
@@ -156,8 +149,7 @@ export default function AdminDashboard() {
           searchValue={searchValue}
           onSearchChange={setSearchValue}
           rows={filteredListings}
-          onView={(row) => showToast(`Viewing ${row.name}`)}
-          onEdit={(row) => showToast(`Editing ${row.name}`)}
+          onEdit={handleEdit}
           onRemove={handleRemove}
         />
       </main>
@@ -165,6 +157,16 @@ export default function AdminDashboard() {
       <div className={`admin-toast ${toast ? 'show' : ''}`} role="status" aria-live="polite">
         {toast}
       </div>
+
+      <AdminEditListingModal
+        isOpen={Boolean(editingListing)}
+        listing={editingListing}
+        onClose={() => {
+          if (!savingEdit) setEditingListing(null);
+        }}
+        onSave={handleSaveEdit}
+        saving={savingEdit}
+      />
     </div>
   );
 }

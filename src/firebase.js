@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAnalytics, isSupported } from 'firebase/analytics';
-import { getDatabase, get, onValue, ref, runTransaction } from 'firebase/database';
+import { getDatabase, get, onValue, push, ref, remove, runTransaction, set, update } from 'firebase/database';
 
 const env = import.meta.env;
 
@@ -32,6 +32,7 @@ if (typeof window !== 'undefined') {
 export { analytics };
 
 const ANALYTICS_PATH = 'analytics';
+const LISTINGS_PATH = 'listings';
 
 function getMonthKey(date = new Date()) {
   const year = date.getFullYear();
@@ -134,6 +135,101 @@ export function subscribeAnalytics(onChange, onError) {
       onError?.(error);
     }
   );
+}
+
+function normalizeListing(raw = {}, id = '') {
+  return {
+    id,
+    name: raw.name || 'Untitled location',
+    address: raw.address || '—',
+    phone: raw.phone || '—',
+    website: raw.website || '',
+    hoursSummary: raw.hoursSummary || '—',
+    hours: raw.hours || null,
+    notes: raw.notes || '',
+    status: raw.status || 'pending',
+    lat: typeof raw.lat === 'number' ? raw.lat : null,
+    lng: typeof raw.lng === 'number' ? raw.lng : null,
+    createdAt: Number(raw.createdAt || 0),
+    updatedAt: Number(raw.updatedAt || 0),
+  };
+}
+
+export async function createListingSubmission(payload) {
+  const listingsRef = ref(db, LISTINGS_PATH);
+  const listingRef = push(listingsRef);
+  const now = Date.now();
+
+  await set(listingRef, {
+    name: payload.name || '',
+    address: payload.address || '',
+    phone: payload.phone || '',
+    website: payload.website || '',
+    notes: payload.notes || '',
+    hours: payload.hours || null,
+    hoursSummary: payload.hoursSummary || '—',
+    status: 'pending',
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  return listingRef.key;
+}
+
+export function subscribeListings(onChange, onError) {
+  const listingsRef = ref(db, LISTINGS_PATH);
+
+  return onValue(
+    listingsRef,
+    (snapshot) => {
+      const value = snapshot.val();
+      const entries = Object.entries(value || {}).map(([id, raw]) => normalizeListing(raw, id));
+      entries.sort((a, b) => b.createdAt - a.createdAt);
+      onChange?.(entries);
+    },
+    (error) => {
+      onError?.(error);
+    }
+  );
+}
+
+export async function approveListing(id) {
+  if (!id) return;
+  await update(ref(db, `${LISTINGS_PATH}/${id}`), {
+    status: 'approved',
+    updatedAt: Date.now(),
+  });
+}
+
+export async function removeListing(id) {
+  if (!id) return;
+  await remove(ref(db, `${LISTINGS_PATH}/${id}`));
+}
+
+export async function updateListing(id, payload) {
+  if (!id) return;
+
+  const sanitized = {
+    name: payload.name || '',
+    address: payload.address || '',
+    phone: payload.phone || '',
+    website: payload.website || '',
+    hoursSummary: payload.hoursSummary || '—',
+    notes: payload.notes || '',
+    updatedAt: Date.now(),
+  };
+
+  await update(ref(db, `${LISTINGS_PATH}/${id}`), sanitized);
+}
+
+export async function updateListingCoordinates(id, coords) {
+  if (!id || typeof coords?.lat !== 'number' || typeof coords?.lng !== 'number') return;
+
+  await update(ref(db, `${LISTINGS_PATH}/${id}`), {
+    lat: coords.lat,
+    lng: coords.lng,
+    updatedAt: Date.now(),
+  });
 }
 
 export async function validateAdminCredentials(email, password) {

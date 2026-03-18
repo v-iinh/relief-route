@@ -1,19 +1,3 @@
-function statusClassName(status) {
-  if (status === 'open') return 'p-open';
-  if (status === 'limited') return 'p-limited';
-  return 'p-closed';
-}
-
-function statusLabel(status) {
-  if (status === 'open') return 'Open';
-  if (status === 'limited') return 'Limited';
-  return 'Closed';
-}
-
-function typeClassName(type) {
-  return type === 'Community' ? 'p-community' : 'p-pantry';
-}
-
 export default function AdminListingsTable({
   activeTab,
   onTabChange,
@@ -22,7 +6,6 @@ export default function AdminListingsTable({
   searchValue,
   onSearchChange,
   rows = [],
-  onView,
   onEdit,
   onRemove,
 }) {
@@ -78,18 +61,17 @@ export default function AdminListingsTable({
         <table className="dt">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Type</th>
-              {isPending ? <th>Submitted</th> : <th>Status</th>}
-              {isPending ? <th>Submitter</th> : <th>Distance</th>}
-              {!isPending && <th>Updated</th>}
+              <th>Location</th>
+              <th>Contact</th>
+              <th>Hours</th>
+              <th>Notes</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {rows.length === 0 ? (
               <tr className="empty-row">
-                <td colSpan={isPending ? 5 : 6}>No matching listings.</td>
+                <td colSpan={5}>No matching listings.</td>
               </tr>
             ) : (
               rows.map((row) => (
@@ -98,23 +80,14 @@ export default function AdminListingsTable({
                     <div className="td-name">{row.name}</div>
                     <div className="td-sub">{row.address}</div>
                   </td>
-                  <td>
-                    <span className={`pill ${typeClassName(row.type)}`}>{row.type}</span>
+                  <td className="td-dim">
+                    <div>{row.phone || '—'}</div>
+                    <div className="td-sub">{row.website || '—'}</div>
                   </td>
-                  {isPending ? (
-                    <td className="td-dim">{row.submitted}</td>
-                  ) : (
-                    <td>
-                      <span className={`pill ${statusClassName(row.status)}`}>{statusLabel(row.status)}</span>
-                    </td>
-                  )}
-                  <td className="td-dim">{isPending ? row.submitter : row.distance}</td>
-                  {!isPending && <td className="td-dim">{row.updated}</td>}
+                  <td className="td-dim">{row.hoursSummary || '—'}</td>
+                  <td className="td-note">{row.notes || '—'}</td>
                   <td>
                     <div className="actions">
-                      <button className="abtn" type="button" onClick={() => onView(row)}>
-                        View
-                      </button>
                       {isPending ? (
                         <button className="abtn" type="button" onClick={() => onEdit(row)}>
                           Approve
