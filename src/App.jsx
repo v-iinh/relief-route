@@ -7,6 +7,7 @@ import Modal from './components/Modal/Modal';
 import AdminLogin from './components/Admin/AdminLogin';
 import Toast from './components/common/Toast';
 import usePlacesSearch from './hooks/usePlacesSearch';
+import { trackSearch, trackVisitAndUser } from './firebase';
 import './index.css';
 
 export default function App() {
@@ -26,6 +27,16 @@ export default function App() {
     map,
     apiReady
   );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (window.__reliefRouteVisitTracked) return;
+
+    window.__reliefRouteVisitTracked = true;
+    trackVisitAndUser().catch(() => {
+      // Ignore analytics errors so page UX is unaffected.
+    });
+  }, []);
 
   // Called once geolocation resolves (or fails with fallback coords)
   const handleLocationReady = useCallback((coords) => {
@@ -50,6 +61,11 @@ export default function App() {
 
   function handleSearch(query) {
     hasUserSearchedRef.current = true;
+
+    trackSearch().catch(() => {
+      // Ignore analytics errors so searching continues.
+    });
+
     const center = map?.getCenter();
     const fallbackCenter = center
       ? { lat: center.lat(), lng: center.lng() }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import logo from '../../assets/logo.png';
 import { validateAdminCredentials } from '../../firebase';
+import AdminDashboard from './AdminDashboard';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -35,7 +36,7 @@ export default function AdminLogin() {
   }
 
   if (isSignedIn) {
-    return <div className="admin-blank-page" />;
+    return <AdminDashboard />;
   }
 
   return (

@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import HoursBuilder, { initHours } from './HoursBuilder';
-import TagListBuilder from './TagListBuilder';
 
 function initialFormState() {
   return {
@@ -10,8 +9,6 @@ function initialFormState() {
     website: '',
     notes: '',
     hours: initHours(),
-    foodAvail: [],
-    foodNeeded: [],
   };
 }
 
@@ -99,24 +96,6 @@ export default function AddLocationForm({ onClose, onToast }) {
       <div className="mf">
         <label>Hours of operation</label>
         <HoursBuilder value={form.hours} onChange={set('hours')} />
-      </div>
-
-      <div className="mf">
-        <label>Food available</label>
-        <TagListBuilder
-          value={form.foodAvail}
-          onChange={set('foodAvail')}
-          placeholder="e.g. Fresh produce, canned goods…"
-        />
-      </div>
-
-      <div className="mf">
-        <label>Currently needed</label>
-        <TagListBuilder
-          value={form.foodNeeded}
-          onChange={set('foodNeeded')}
-          placeholder="e.g. Baby formula, rice…"
-        />
       </div>
 
       <div className="mf">
