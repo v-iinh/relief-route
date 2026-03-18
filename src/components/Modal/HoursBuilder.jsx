@@ -1,5 +1,15 @@
-import { useState, useCallback } from 'react';
 import { FULL_DAYS } from '../../data/constants';
+
+const ALWAYS_OPEN_VALUE = 'Open 24 hours';
+
+function isAlwaysOpenEntry(entry = {}) {
+  const normalizedOpen = String(entry.open || '').trim().toLowerCase();
+  return !entry.closed && !entry.close && (
+    normalizedOpen === 'open 24/7' ||
+    normalizedOpen === 'open 24 hours' ||
+    normalizedOpen === 'open 24h'
+  );
+}
 
 function initHours() {
   return Object.fromEntries(
@@ -8,6 +18,23 @@ function initHours() {
 }
 
 export default function HoursBuilder({ value, onChange }) {
+  function toggle24h(day) {
+    const current = value[day] || {};
+
+    if (isAlwaysOpenEntry(current)) {
+      onChange({
+        ...value,
+        [day]: { ...current, open: '', close: '', closed: false },
+      });
+      return;
+    }
+
+    onChange({
+      ...value,
+      [day]: { ...current, open: ALWAYS_OPEN_VALUE, close: '', closed: false },
+    });
+  }
+
   function toggle(day) {
     onChange({
       ...value,
@@ -25,6 +52,9 @@ export default function HoursBuilder({ value, onChange }) {
         <div className="hbh-cell">Day</div>
         <div className="hbh-cell">Open</div>
         <div className="hbh-cell">Close</div>
+        <div className="hbh-cell" style={{ textAlign: 'center' }}>
+          24h
+        </div>
         <div className="hbh-cell" style={{ paddingRight: '.5rem', textAlign: 'center' }}>
           Off
         </div>
@@ -32,6 +62,7 @@ export default function HoursBuilder({ value, onChange }) {
 
       {FULL_DAYS.map(day => {
         const { open, close, closed } = value[day];
+        const is24h = isAlwaysOpenEntry(value[day]);
         return (
           <div
             key={day}
@@ -39,26 +70,36 @@ export default function HoursBuilder({ value, onChange }) {
           >
             <div className="hb-day">{day}</div>
             <input
-              className={`hb-input${closed ? ' closed-input' : ''}`}
+              className={`hb-input${closed ? ' closed-input' : ''}${is24h ? ' always-open-input' : ''}`}
               type="text"
               placeholder={closed ? 'Closed' : '9:00 am'}
               value={open}
-              disabled={closed}
+              disabled={closed || is24h}
               onChange={e => setField(day, 'open', e.target.value)}
             />
             <input
               className={`hb-input hb-close${closed ? ' closed-input' : ''}`}
               type="text"
-              placeholder={closed ? '' : '5:00 pm'}
+              placeholder={closed || is24h ? '' : '5:00 pm'}
               value={close}
-              disabled={closed}
+              disabled={closed || is24h}
               onChange={e => setField(day, 'close', e.target.value)}
             />
+            <div className="hb-24h-toggle">
+              <input
+                className="hb-checkbox"
+                type="checkbox"
+                checked={is24h}
+                disabled={closed}
+                onChange={() => toggle24h(day)}
+              />
+            </div>
             <div className="hb-closed-toggle">
               <input
                 className="hb-checkbox"
                 type="checkbox"
                 checked={closed}
+                disabled={is24h}
                 onChange={() => toggle(day)}
               />
             </div>
@@ -77,6 +118,8 @@ export function getHoursValue(value) {
     const { open, close, closed } = value[day];
     if (closed) {
       result[day] = 'Closed';
+    } else if (isAlwaysOpenEntry(value[day])) {
+      result[day] = ALWAYS_OPEN_VALUE;
     } else {
       result[day] = open && close ? `${open}–${close}` : open || close || '—';
     }

@@ -85,6 +85,18 @@ function parseTimeToMinutes(value) {
   return hour * 60 + minutes;
 }
 
+function isAlwaysOpenText(value) {
+  if (typeof value !== 'string') return false;
+
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .replace(/[\u202f\u00a0\u2009]/g, ' ')
+    .replace(/\s+/g, ' ');
+
+  return normalized === 'open 24 hours' || normalized === 'open 24h' || normalized === 'open 24/7';
+}
+
 function resolveCustomOpenNow(hours) {
   if (!hours || typeof hours !== 'object') return null;
 
@@ -94,6 +106,7 @@ function resolveCustomOpenNow(hours) {
 
   if (!today || typeof today !== 'object') return null;
   if (today.closed === true) return false;
+  if (isAlwaysOpenText(today.open)) return true;
 
   const openMinutes = parseTimeToMinutes(today.open);
   const closeMinutes = parseTimeToMinutes(today.close);

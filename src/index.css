@@ -455,7 +455,7 @@ body {
 }
 .hours-builder-row {
   display: grid;
-  grid-template-columns: 2.8rem 1fr 1fr 2.8rem;
+  grid-template-columns: 2.8rem 1fr 1fr 2.8rem 2.8rem;
   align-items: stretch;
   gap: 0;
   border-bottom: 1px solid var(--line);
@@ -487,12 +487,15 @@ body {
 }
 .hb-input:focus { background: var(--white); }
 .hb-input.closed-input { color: var(--ink-muted); font-style: italic; }
+.hb-input.always-open-input { color: var(--ink-muted); }
 .hb-input::placeholder { color: var(--ink-muted); font-style: normal; }
 
+.hb-24h-toggle,
 .hb-closed-toggle {
   display: flex; align-items: center; justify-content: center;
   width: auto;
 }
+.hb-24h-toggle { border-right: 1px solid var(--line); }
 .hb-checkbox {
   width: 14px !important; height: 14px;
   padding: 0 !important;
@@ -507,7 +510,7 @@ body {
 
 .hours-builder-header {
   display: grid;
-  grid-template-columns: 2.8rem 1fr 1fr auto;
+  grid-template-columns: 2.8rem 1fr 1fr 2.8rem 2.8rem;
   background: var(--bg2);
   border-bottom: 1px solid var(--line);
   padding: 0.3rem 0;
