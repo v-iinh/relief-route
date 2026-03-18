@@ -447,6 +447,7 @@ body {
 .mf input:focus, .mf select:focus, .mf textarea:focus { border-color: var(--green); }
 .mf textarea { resize: none; height: 68px; }
 .mf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+.admin-view-form .mf:last-child { margin-bottom: 0; }
 
 /* Hours builder in modal */
 .hours-builder {
@@ -1305,6 +1306,12 @@ table.dt th {
   white-space: nowrap;
 }
 
+table.dt th:last-child,
+table.dt td:last-child {
+  width: 1%;
+  white-space: nowrap;
+}
+
 table.dt td {
   padding: 0.75rem 1rem;
   font-size: 0.8rem;
@@ -1368,6 +1375,7 @@ table.dt tbody tr:hover td {
 .actions {
   display: flex;
   gap: 0.32rem;
+  justify-content: flex-end;
 }
 
 .abtn {
@@ -1450,10 +1458,6 @@ table.dt tbody tr:hover td {
     width: 160px;
   }
 
-  table.dt th:nth-child(4),
-  table.dt td:nth-child(4) {
-    display: none;
-  }
 }
 
 @media (max-width: 480px) {
@@ -1483,12 +1487,8 @@ table.dt tbody tr:hover td {
     flex: 1;
   }
 
-  table.dt th:nth-child(5),
-  table.dt td:nth-child(5) {
-    display: none;
-  }
-
   .actions {
     flex-wrap: wrap;
+    justify-content: flex-start;
   }
 }

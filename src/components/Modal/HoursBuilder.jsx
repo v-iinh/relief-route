@@ -17,33 +17,40 @@ function initHours() {
   );
 }
 
-export default function HoursBuilder({ value, onChange }) {
+export default function HoursBuilder({ value, onChange, readOnly = false }) {
+  const hoursValue = value || initHours();
+
+  function update(nextValue) {
+    if (readOnly || typeof onChange !== 'function') return;
+    onChange(nextValue);
+  }
+
   function toggle24h(day) {
-    const current = value[day] || {};
+    const current = hoursValue[day] || {};
 
     if (isAlwaysOpenEntry(current)) {
-      onChange({
-        ...value,
+      update({
+        ...hoursValue,
         [day]: { ...current, open: '', close: '', closed: false },
       });
       return;
     }
 
-    onChange({
-      ...value,
+    update({
+      ...hoursValue,
       [day]: { ...current, open: ALWAYS_OPEN_VALUE, close: '', closed: false },
     });
   }
 
   function toggle(day) {
-    onChange({
-      ...value,
-      [day]: { ...value[day], closed: !value[day].closed },
+    update({
+      ...hoursValue,
+      [day]: { ...hoursValue[day], closed: !hoursValue[day].closed },
     });
   }
 
   function setField(day, field, val) {
-    onChange({ ...value, [day]: { ...value[day], [field]: val } });
+    update({ ...hoursValue, [day]: { ...hoursValue[day], [field]: val } });
   }
 
   return (
@@ -61,8 +68,8 @@ export default function HoursBuilder({ value, onChange }) {
       </div>
 
       {FULL_DAYS.map(day => {
-        const { open, close, closed } = value[day];
-        const is24h = isAlwaysOpenEntry(value[day]);
+        const { open, close, closed } = hoursValue[day];
+        const is24h = isAlwaysOpenEntry(hoursValue[day]);
         return (
           <div
             key={day}
@@ -74,7 +81,7 @@ export default function HoursBuilder({ value, onChange }) {
               type="text"
               placeholder={closed ? 'Closed' : '9:00 am'}
               value={open}
-              disabled={closed || is24h}
+              disabled={closed || is24h || readOnly}
               onChange={e => setField(day, 'open', e.target.value)}
             />
             <input
@@ -82,7 +89,7 @@ export default function HoursBuilder({ value, onChange }) {
               type="text"
               placeholder={closed || is24h ? '' : '5:00 pm'}
               value={close}
-              disabled={closed || is24h}
+              disabled={closed || is24h || readOnly}
               onChange={e => setField(day, 'close', e.target.value)}
             />
             <div className="hb-24h-toggle">
@@ -90,7 +97,7 @@ export default function HoursBuilder({ value, onChange }) {
                 className="hb-checkbox"
                 type="checkbox"
                 checked={is24h}
-                disabled={closed}
+                disabled={closed || readOnly}
                 onChange={() => toggle24h(day)}
               />
             </div>
@@ -99,7 +106,7 @@ export default function HoursBuilder({ value, onChange }) {
                 className="hb-checkbox"
                 type="checkbox"
                 checked={closed}
-                disabled={is24h}
+                disabled={is24h || readOnly}
                 onChange={() => toggle(day)}
               />
             </div>

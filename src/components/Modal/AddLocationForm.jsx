@@ -129,7 +129,7 @@ export default function AddLocationForm({ onClose, onToast }) {
       </div>
 
       <div className="mf">
-        <label>Hours of operation</label>
+        <label>Hours</label>
         <HoursBuilder value={form.hours} onChange={set('hours')} />
       </div>
 

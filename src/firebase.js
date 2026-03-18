@@ -219,6 +219,10 @@ export async function updateListing(id, payload) {
     updatedAt: Date.now(),
   };
 
+  if (payload.hours && typeof payload.hours === 'object') {
+    sanitized.hours = payload.hours;
+  }
+
   await update(ref(db, `${LISTINGS_PATH}/${id}`), sanitized);
 }
 
