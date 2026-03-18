@@ -125,8 +125,16 @@ function isOpenForTodayRow(todayRow, nowMinutes) {
 function resolveOpenNow(openingHours, utcOffsetMinutes = null) {
   if (!openingHours) return null;
 
-  if (typeof openingHours.open_now === 'boolean') {
-    return openingHours.open_now;
+  if (typeof openingHours.isOpen === 'function') {
+    try {
+      return openingHours.isOpen(new Date());
+    } catch {
+      try {
+        return openingHours.isOpen();
+      } catch {
+        // Ignore and continue to text fallback.
+      }
+    }
   }
 
   if (Array.isArray(openingHours.weekday_text)) {
@@ -138,18 +146,6 @@ function resolveOpenNow(openingHours, utcOffsetMinutes = null) {
 
     if (typeof todayRow === 'string') {
       return isOpenForTodayRow(todayRow, nowAtPlace.minutes);
-    }
-  }
-
-  if (typeof openingHours.isOpen === 'function') {
-    try {
-      return openingHours.isOpen(new Date());
-    } catch {
-      try {
-        return openingHours.isOpen();
-      } catch {
-        // Ignore and return unknown.
-      }
     }
   }
 

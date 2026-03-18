@@ -895,6 +895,11 @@ body {
   background: var(--green-hover);
 }
 
+.admin-form button:disabled {
+  background: var(--ink-muted);
+  cursor: not-allowed;
+}
+
 .admin-message {
   margin-top: 0.85rem;
   font-size: 0.78rem;
@@ -903,6 +908,11 @@ body {
   border: 1px solid var(--line);
   border-radius: 3px;
   padding: 0.45rem 0.55rem;
+}
+
+.admin-blank-page {
+  min-height: 100dvh;
+  background: var(--white);
 }
 
 @media (max-width: 520px) {

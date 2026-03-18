@@ -1,19 +1,41 @@
 import { useState } from 'react';
 import logo from '../../assets/logo.png';
+import { validateAdminCredentials } from '../../firebase';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(false);
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     if (!email.trim() || !password.trim()) {
       setMessage('Enter both email and password.');
       return;
     }
 
-    setMessage('Login submitted. Connect this form to your admin auth endpoint.');
+    setIsAuthenticating(true);
+
+    try {
+      const isValid = await validateAdminCredentials(email, password);
+      if (!isValid) {
+        setMessage('Invalid email or password.');
+        return;
+      }
+
+      setIsSignedIn(true);
+      setMessage('');
+    } catch (error) {
+      setMessage('Login failed. Please verify Firebase config and database permissions.');
+    } finally {
+      setIsAuthenticating(false);
+    }
+  }
+
+  if (isSignedIn) {
+    return <div className="admin-blank-page" />;
   }
 
   return (
@@ -50,7 +72,9 @@ export default function AdminLogin() {
             autoComplete="current-password"
           />
 
-          <button type="submit">Sign In</button>
+          <button type="submit" disabled={isAuthenticating}>
+            {isAuthenticating ? 'Signing In...' : 'Sign In'}
+          </button>
         </form>
 
         {message && <div className="admin-message">{message}</div>}
