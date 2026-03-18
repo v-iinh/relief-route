@@ -75,7 +75,10 @@ export default function AddLocationForm({ onClose, onToast }) {
         </div>
 
         <div className="m-success-card">
-          <div className="m-success-label">Location</div>
+          <div className="m-success-card-top">
+            <span className="m-success-card-dot" aria-hidden="true" />
+            <div className="m-success-label">Location submitted</div>
+          </div>
           <div className="m-success-name">{form.name || 'Untitled location'}</div>
           <div className="m-success-address">{form.address || 'Address not provided'}</div>
         </div>
