@@ -16,10 +16,12 @@ function formatMetricValue(value) {
 }
 
 export default function AdminDashboard() {
+  const PAGE_SIZE = 10;
   const [allListings, setAllListings] = useState([]);
   const [period, setPeriod] = useState('alltime');
   const [activeTab, setActiveTab] = useState('current');
   const [searchValue, setSearchValue] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
   const [toast, setToast] = useState('');
   const [editingListing, setEditingListing] = useState(null);
   const [savingEdit, setSavingEdit] = useState(false);
@@ -61,6 +63,24 @@ export default function AdminDashboard() {
       return fields.some((value) => String(value || '').toLowerCase().includes(query));
     });
   }, [activeTab, currentListings, pendingListings, searchValue]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredListings.length / PAGE_SIZE));
+
+  const paginatedListings = useMemo(() => {
+    const safePage = Math.min(currentPage, totalPages);
+    const start = (safePage - 1) * PAGE_SIZE;
+    return filteredListings.slice(start, start + PAGE_SIZE);
+  }, [currentPage, filteredListings, totalPages]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [activeTab, searchValue]);
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [currentPage, totalPages]);
 
   useEffect(() => {
     const unsubscribe = subscribeAnalytics(
@@ -148,7 +168,11 @@ export default function AdminDashboard() {
           pendingCount={pendingListings.length}
           searchValue={searchValue}
           onSearchChange={setSearchValue}
-          rows={filteredListings}
+          rows={paginatedListings}
+          totalRows={filteredListings.length}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
           onEdit={handleEdit}
           onRemove={handleRemove}
         />

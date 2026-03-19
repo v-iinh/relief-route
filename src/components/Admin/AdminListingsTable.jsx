@@ -10,6 +10,10 @@ export default function AdminListingsTable({
   searchValue,
   onSearchChange,
   rows = [],
+  totalRows = 0,
+  currentPage = 1,
+  totalPages = 1,
+  onPageChange,
   onEdit,
   onRemove,
 }) {
@@ -99,6 +103,14 @@ export default function AdminListingsTable({
     });
 
     return hasStructuredHours ? resolved : fallback;
+  }
+
+  const pageStart = totalRows === 0 ? 0 : (currentPage - 1) * 10 + 1;
+  const pageEnd = totalRows === 0 ? 0 : Math.min(currentPage * 10, totalRows);
+
+  const pageNumbers = [];
+  for (let page = 1; page <= totalPages; page += 1) {
+    pageNumbers.push(page);
   }
 
   return (
@@ -194,6 +206,46 @@ export default function AdminListingsTable({
           </tbody>
         </table>
       </div>
+
+      {totalRows > 10 && (
+        <div className="listings-pagination" role="navigation" aria-label="Listings pages">
+          <div className="listings-pagination-meta">
+            Showing {pageStart}-{pageEnd} of {totalRows}
+          </div>
+
+          <div className="listings-pagination-controls">
+            <button
+              type="button"
+              className="pagination-btn"
+              onClick={() => onPageChange?.(currentPage - 1)}
+              disabled={currentPage <= 1}
+            >
+              Prev
+            </button>
+
+            {pageNumbers.map((page) => (
+              <button
+                key={page}
+                type="button"
+                className={`pagination-btn ${page === currentPage ? 'active' : ''}`}
+                onClick={() => onPageChange?.(page)}
+                aria-current={page === currentPage ? 'page' : undefined}
+              >
+                {page}
+              </button>
+            ))}
+
+            <button
+              type="button"
+              className="pagination-btn"
+              onClick={() => onPageChange?.(currentPage + 1)}
+              disabled={currentPage >= totalPages}
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      )}
 
       {readerRow && (
         <div

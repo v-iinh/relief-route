@@ -787,13 +787,6 @@ body {
 @media (max-width: 768px) {
   body { overflow: hidden; }
 
-  /* Prevent iOS from zooming the viewport when focusing form controls. */
-  input,
-  select,
-  textarea {
-    font-size: 16px !important;
-  }
-
   .app {
     flex-direction: column;
     height: 100dvh;
@@ -1148,8 +1141,8 @@ body {
 }
 
 .period-btn:hover:not(.active) {
-  background: var(--green-wash);
-  color: var(--green);
+  background: var(--bg2);
+  color: var(--ink);
 }
 
 .metrics-title,
@@ -1326,8 +1319,8 @@ body {
 }
 
 .listing-tab:hover:not(.active) {
-  background: var(--green-wash);
-  color: var(--green);
+  background: var(--bg2);
+  color: var(--ink);
 }
 
 .tab-badge {
@@ -1387,9 +1380,6 @@ table.dt tr:last-child td {
   border-bottom: none;
 }
 
-table.dt tbody tr:hover td {
-  background: var(--green-wash);
-}
 
 .td-name {
   font-weight: 500;
@@ -1456,9 +1446,9 @@ table.dt tbody tr:hover td {
 }
 
 .abtn:hover {
-  border-color: var(--green);
-  color: var(--green);
-  background: var(--green-wash);
+  border-color: var(--line);
+  color: var(--ink);
+  background: var(--bg2);
 }
 
 .abtn.danger {
@@ -1476,6 +1466,67 @@ table.dt tbody tr:hover td {
   color: var(--ink-muted);
   font-size: 0.82rem;
   font-weight: 300;
+}
+
+.listings-pagination {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.listings-pagination-meta {
+  font-size: 0.7rem;
+  color: var(--ink-muted);
+  font-weight: 300;
+}
+
+.listings-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+}
+
+.pagination-btn {
+  font-size: 0.68rem;
+  font-weight: 500;
+  min-width: 2rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 3px;
+  border: 1px solid var(--line);
+  background: var(--white);
+  color: var(--ink-mid);
+  cursor: pointer;
+  font-family: 'Epilogue', sans-serif;
+  transition: all 0.15s;
+}
+
+.pagination-btn:hover:not(:disabled):not(.active) {
+  border-color: var(--line);
+  color: var(--ink);
+  background: var(--bg2);
+}
+
+.pagination-btn.active {
+  background: var(--green);
+  border-color: var(--green);
+  color: var(--white);
+}
+
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.period-btn:disabled,
+.listing-tab:disabled,
+.abtn:disabled,
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .admin-toast {
@@ -1551,6 +1602,11 @@ table.dt tbody tr:hover td {
     width: 100%;
   }
 
+  .listings-pagination {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
 }
 
 @media (max-width: 480px) {
@@ -1582,6 +1638,11 @@ table.dt tbody tr:hover td {
 
   .actions {
     flex-wrap: wrap;
-    justify-content: flex-start;
+    justify-content: flex-end;
+    width: 100%;
+  }
+
+  .abtn {
+    width: 100%;
   }
 }
