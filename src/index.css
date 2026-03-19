@@ -330,11 +330,13 @@ body {
 
 .detail-actions { display: flex; gap: 0.5rem; margin-top: 1.4rem; padding-bottom: 0.5rem; }
 .btn-dir {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;
   flex: 1; background: var(--green); color: var(--white);
   border: none; border-radius: 3px; padding: 0.68rem 0.5rem;
   font-family: 'Epilogue', sans-serif; font-size: 0.8rem; font-weight: 500;
   cursor: pointer; transition: background 0.2s;
 }
+.btn-dir-icon { width: 0.95rem; height: 0.95rem; flex-shrink: 0; }
 .btn-dir:hover { background: var(--green-hover); }
 .btn-share {
   background: var(--white); color: var(--ink-mid);

@@ -235,7 +235,17 @@ export default function DetailContent({ loc, onToast }) {
 
       <div className="detail-actions">
         <button className="btn-dir" onClick={() => getDir(loc.address)}>
-          Get directions ↗
+          <span>Get directions</span>
+          <svg className="btn-dir-icon" viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <path
+              d="M5 11L11 5M6 5h5v5"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </button>
         <button className="btn-share" onClick={share}>
           Share
