@@ -3,6 +3,25 @@ import ResultCard from './ResultCard';
 import DetailPanel from './DetailPanel';
 import logo from '../../assets/logo.png';
 
+function SortDirectionIcon() {
+  return (
+    <svg
+      className="sort-icon"
+      viewBox="0 0 14 14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M7 1.5v11" />
+      <path d="M4.7 3.8 7 1.5l2.3 2.3" />
+      <path d="m4.7 10.2 2.3 2.3 2.3-2.3" />
+    </svg>
+  );
+}
+
 export default function Sidebar({
   locations = [],
   activeId,
@@ -79,7 +98,8 @@ export default function Sidebar({
           className="sort-btn"
           onClick={() => setSort(s => (s === 'name' ? 'dist' : 'name'))}
         >
-          Sort: {sort === 'name' ? 'A–Z ↕' : 'Nearest ↕'}
+          <span>Sort: {sort === 'name' ? 'A-Z' : 'Nearest'}</span>
+          <SortDirectionIcon />
         </button>
       </div>
 

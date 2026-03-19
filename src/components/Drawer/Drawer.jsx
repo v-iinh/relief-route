@@ -1,9 +1,29 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import ResultCard from '../Sidebar/ResultCard';
 import DetailContent from '../common/DetailContent';
 
+function SortDirectionIcon() {
+  return (
+    <svg
+      className="sort-icon"
+      viewBox="0 0 14 14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M7 1.5v11" />
+      <path d="M4.7 3.8 7 1.5l2.3 2.3" />
+      <path d="m4.7 10.2 2.3 2.3 2.3-2.3" />
+    </svg>
+  );
+}
+
 export default function Drawer({
   isOpen,
+  onOpenChange,
   locations = [],
   activeId,
   activeLocation,
@@ -15,14 +35,106 @@ export default function Drawer({
 }) {
   const [inputVal, setInputVal] = useState('');
   const [sort, setSort] = useState('dist');
+  const [dragOffset, setDragOffset] = useState(null);
+  const drawerRef = useRef(null);
+  const dragStartY = useRef(null);
+  const dragStartOpen = useRef(false);
+  const dragStartOffset = useRef(0);
 
   const sorted = [...locations].sort((a, b) =>
     sort === 'name' ? a.name.localeCompare(b.name) : a.dist - b.dist
   );
 
+  function updateOpen(nextOpen) {
+    if (typeof onOpenChange === 'function') {
+      onOpenChange(nextOpen);
+    }
+  }
+
+  function getDrawerTravel() {
+    const height = drawerRef.current?.offsetHeight;
+    if (typeof height === 'number' && height > 0) return height;
+    return Math.round(window.innerHeight * 0.6);
+  }
+
+  function clampOffset(offset) {
+    const max = getDrawerTravel();
+    if (offset < 0) return 0;
+    if (offset > max) return max;
+    return offset;
+  }
+
+  function handlePointerDown(e) {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    if (!e.isPrimary) return;
+
+    const startOffset = isOpen ? 0 : getDrawerTravel();
+    dragStartY.current = e.clientY;
+    dragStartOpen.current = isOpen;
+    dragStartOffset.current = startOffset;
+    setDragOffset(startOffset);
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+
+  function handlePointerMove(e) {
+    if (dragStartY.current === null) return;
+
+    const deltaY = e.clientY - dragStartY.current;
+    const nextOffset = clampOffset(dragStartOffset.current + deltaY);
+    setDragOffset(nextOffset);
+  }
+
+  function handlePointerUp(e) {
+    if (dragStartY.current === null) return;
+
+    const deltaY = e.clientY - dragStartY.current;
+    const threshold = 18;
+    const travel = getDrawerTravel();
+    const midpoint = travel / 2;
+    const settledOffset = typeof dragOffset === 'number'
+      ? dragOffset
+      : dragStartOpen.current
+        ? 0
+        : travel;
+    const snappedOpen = settledOffset < midpoint;
+
+    if (deltaY <= -threshold) {
+      updateOpen(true);
+    } else if (deltaY >= threshold) {
+      updateOpen(false);
+    } else {
+      updateOpen(snappedOpen);
+    }
+
+    setDragOffset(null);
+    dragStartY.current = null;
+  }
+
+  function handlePointerCancel() {
+    setDragOffset(null);
+    dragStartY.current = null;
+  }
+
+  const drawerStyle = dragOffset === null
+    ? undefined
+    : {
+      transform: `translateY(${dragOffset}px)`,
+      transition: 'none',
+    };
+
   return (
-    <div className={`drawer${isOpen ? ' open' : ''}`}>
-      <div className="drawer-handle">
+    <div
+      ref={drawerRef}
+      className={`drawer${isOpen ? ' open' : ''}`}
+      style={drawerStyle}
+    >
+      <div
+        className="drawer-handle"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+      >
         <div className="drawer-handle-bar" />
       </div>
 
@@ -67,7 +179,8 @@ export default function Drawer({
           className="sort-btn"
           onClick={() => setSort(s => (s === 'name' ? 'dist' : 'name'))}
         >
-          Sort: {sort === 'name' ? 'A–Z ↕' : 'Nearest ↕'}
+          <span>Sort: {sort === 'name' ? 'A-Z' : 'Nearest'}</span>
+          <SortDirectionIcon />
         </button>
       </div>
 

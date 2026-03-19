@@ -377,6 +377,7 @@ export default function App() {
 
       <Drawer
         isOpen={drawerOpen}
+        onOpenChange={setDrawerOpen}
         locations={locations}
         activeId={activeId}
         activeLocation={activeLocation}
