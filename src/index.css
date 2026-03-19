@@ -1471,8 +1471,38 @@ table.dt tbody tr:hover td {
     padding: 0.75rem 1.2rem;
   }
 
+  .metrics-header {
+    align-items: stretch;
+  }
+
+  .period-toggle {
+    width: 100%;
+  }
+
+  .period-btn {
+    flex: 1;
+  }
+
+  .listings-controls {
+    width: 100%;
+    justify-content: stretch;
+  }
+
+  .listing-tabs {
+    width: 100%;
+  }
+
+  .listing-tab {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .admin-dashboard .search-wrap {
+    width: 100%;
+  }
+
   .admin-dashboard .search-input {
-    width: 160px;
+    width: 100%;
   }
 
 }
