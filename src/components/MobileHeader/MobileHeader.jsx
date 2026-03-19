@@ -1,8 +1,10 @@
+import logo from '../../assets/logo.png';
+
 export default function MobileHeader({ drawerOpen, onToggleDrawer, onOpenModal }) {
   return (
     <div className="mobile-header">
       <div className="mobile-logo">
-        <span className="logo-pip" /> Relief Route
+        <img className="logo-image" src={logo} alt="Relief Route logo" /> Relief Route
       </div>
       <div className="mobile-actions">
         <button className="add-btn" onClick={onOpenModal}>
