@@ -311,7 +311,8 @@ export default function App() {
 
   const activeLocation = locations.find(l => l.id === activeId);
 
-  const isAdminRoute = window.location.pathname === '/admin';
+  const normalizedPathname = window.location.pathname.replace(/\/+$/, '') || '/';
+  const isAdminRoute = normalizedPathname === '/admin';
 
   if (isAdminRoute) {
     return <AdminLogin />;
